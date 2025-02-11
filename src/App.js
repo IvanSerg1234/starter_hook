@@ -1,24 +1,179 @@
-import logo from './logo.svg';
+import {Component, useState, useEffect, useCallback, useMemo} from 'react';
+import {Container} from 'react-bootstrap';
 import './App.css';
+// class Slider extends Component {
+
+//     constructor(props) {
+//         super(props);
+//         this.state = {
+//             autoplay: false,
+//             slide: 0
+//         }
+//     }
+
+//     componentDidMount() {
+//         document.title = `Slide ${this.state.slide}`;
+//     }
+
+//     componentDidUpdate() {
+//         document.title = `Slide ${this.state.slide}`;
+//     }
+
+//     changeSlide = (i) => {
+//         this.setState(({slide}) => ({
+//             slide: slide + i
+//         }))
+//     }
+
+//     toggleAutoplay = () => {
+//         this.setState(({autoplay}) => ({
+//             autoplay: !autoplay
+//         }))
+//     }
+
+//     render() {
+//         return (
+//             <Container>
+//                 <div className="slider w-50 m-auto">
+//                     <img className="d-block w-100" src="https://www.planetware.com/wpimages/2020/02/france-in-pictures-beautiful-places-to-photograph-eiffel-tower.jpg" alt="slide" />
+//                     <div className="text-center mt-5">Active slide {this.state.slide} <br/> {this.state.autoplay ? 'auto' : null}</div>
+//                     <div className="buttons mt-3">
+//                         <button 
+//                             className="btn btn-primary me-2"
+//                             onClick={() => this.changeSlide(-1)}>-1</button>
+//                         <button 
+//                             className="btn btn-primary me-2"
+//                             onClick={() => this.changeSlide(1)}>+1</button>
+//                         <button 
+//                             className="btn btn-primary me-2"
+//                             onClick={this.toggleAutoplay}>toggle autoplay</button>
+//                     </div>
+//                 </div>
+//             </Container>
+//         )
+//     }
+// }
+
+const countTotal = (num) => {
+    console.log('counting...');
+    return num + 10;
+}
+
+const Slider = (props) => {
+
+    const [slide, setSlide] = useState(0);
+    const [autoplay, setAutoplay] = useState(false);
+
+    const getSomeImages = useCallback(() => {
+        console.log('fetching')
+        return [
+            'https://www.planetware.com/wpimages/2020/02/france-in-pictures-beautiful-places-to-photograph-eiffel-tower.jpg',
+            'https://www.planetware.com/wpimages/2020/02/france-in-pictures-beautiful-places-to-photograph-eiffel-tower.jpg'
+        ]
+    }, []);
+
+    function logging() {
+        console.log('log!');
+    }
+
+    // useEffect(() => {
+    //     console.log('effect');
+    //     document.title = `Slide ${slide}`;
+    // }, []); // Empty array means that the effect will only run once
+    
+    useEffect(() => {
+        console.log('effect update');
+        document.title = `Slide ${slide}`;
+        
+        window.addEventListener('click', logging);
+
+        return () => {
+            window.removeEventListener('click', logging);
+        }
+
+    }, [slide]); // Only run when slide changes
+
+    useEffect(() => {
+        console.log('autoplay');
+    }, [autoplay]);
+
+    // const [state, setState] = useState({autoplay: false, slide: 0});
+
+    // function changeSlide(i) {
+    //     setState(state => ({...state, slide: state.slide + i}));
+    //     // setSlide(slide => slide + i); // Using call-back function 2 times in a row will cause the slide to be updated twice
+    // }
+
+    // function toggleAutoplay() {
+    //     setState(autoplay => ({...autoplay, autoplay: !state.autoplay}));
+    // }
+
+    function changeSlide(i) {
+        setSlide(slide => slide + i);
+        // setSlide(slide => slide + i); // Using call-back function 2 times in a row will cause the slide to be updated twice
+    }
+
+    function toggleAutoplay() {
+        setAutoplay(autoplay => !autoplay);
+    }
+
+    const total = useMemo(() => countTotal(slide), [slide]); // Hook useMemo used to cache the result of a function.
+
+    const style = useMemo(() => ({
+            color: slide > 4 ? 'red' : 'black'
+    }), [slide])
+
+    useEffect(() => {
+        console.log('styles!');
+    }, [style]);
+
+    return (
+        <Container>
+            <div className="slider w-50 m-auto">
+                <Slide getSomeImages={getSomeImages}/>
+
+                <div className="text-center mt-5">Active slide {slide} <br/>{autoplay ? 'auto' : null}</div>
+                <div style={style} className="text-center mt-5">Total slides: {total}</div>
+                <div className="buttons mt-3">
+                    <button 
+                        className="btn btn-primary me-2"
+                        onClick={() => changeSlide(-1)}>-1</button>
+                    <button 
+                        className="btn btn-primary me-2"
+                        onClick={() => changeSlide(1)}>+1</button>
+                    <button 
+                        className="btn btn-primary me-2"
+                        onClick={toggleAutoplay}>toggle autoplay</button>
+                </div>
+            </div>
+        </Container>
+    )
+}
+
+const Slide = ({getSomeImages}) => {
+    const [images, setImages] = useState([]);
+
+    useEffect(() => {
+        setImages(getSomeImages());
+    }, [getSomeImages])
+
+    return (
+        <>
+            {images.map((url, i) => <img key={i} className="d-block w-100" src={url} alt="slide" />)}
+        </>
+    )
+}
 
 function App() {
+    const [slider, setSlider] = useState(true);
+
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+        <button onClick={() => setSlider(false)}>Click</button>    
+        {slider ? <Slider/> : null}
+    </>
   );
 }
 
