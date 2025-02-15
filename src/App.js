@@ -1,4 +1,4 @@
-import {Component, useState, useEffect, useCallback, useMemo} from 'react';
+import {Component, useState, useEffect, useCallback, useMemo, useReducer} from 'react';
 import {Container} from 'react-bootstrap';
 import './App.css';
 // class Slider extends Component {
@@ -59,10 +59,30 @@ const countTotal = (num) => {
     return num + 10;
 }
 
-const Slider = (props) => {
+function reducer (state, action) {
+    switch(action.type) {
+        case 'toggle':
+            return {autoplay: !state.autoplay};
+        case 'slow':
+            return {autoplay: 300};
+        case 'fast':
+            return {autoplay: 700};
+        case 'custom':
+            return {autoplay: action.payload};
+        default:
+            throw new Error();
+    }
+}
+
+function init(initial) {
+    return {autoplay: initial};
+}
+
+const Slider = ({initial}) => {
 
     const [slide, setSlide] = useState(0);
-    const [autoplay, setAutoplay] = useState(false);
+    // const [autoplay, setAutoplay] = useState(false);
+    const [autoplay, dispatch] = useReducer(reducer, initial, init);
 
     const getSomeImages = useCallback(() => {
         console.log('fetching')
@@ -113,9 +133,9 @@ const Slider = (props) => {
         // setSlide(slide => slide + i); // Using call-back function 2 times in a row will cause the slide to be updated twice
     }
 
-    function toggleAutoplay() {
-        setAutoplay(autoplay => !autoplay);
-    }
+    // function toggleAutoplay() {
+    //     setAutoplay(autoplay => !autoplay);
+    // }
 
     const total = useMemo(() => countTotal(slide), [slide]); // Hook useMemo used to cache the result of a function.
 
@@ -132,7 +152,7 @@ const Slider = (props) => {
             <div className="slider w-50 m-auto">
                 <Slide getSomeImages={getSomeImages}/>
 
-                <div className="text-center mt-5">Active slide {slide} <br/>{autoplay ? 'auto' : null}</div>
+                <div className="text-center mt-5">Active slide {slide} <br/>{autoplay.autoplay ? 'auto' : null}</div>
                 <div style={style} className="text-center mt-5">Total slides: {total}</div>
                 <div className="buttons mt-3">
                     <button 
@@ -143,7 +163,16 @@ const Slider = (props) => {
                         onClick={() => changeSlide(1)}>+1</button>
                     <button 
                         className="btn btn-primary me-2"
-                        onClick={toggleAutoplay}>toggle autoplay</button>
+                        onClick={() => dispatch({type: 'toggle'})}>toggle autoplay</button>
+                        <button 
+                        className="btn btn-primary me-2"
+                        onClick={() => dispatch({type: 'slow'})}>slow autoplay</button>
+                        <button 
+                        className="btn btn-primary me-2"
+                        onClick={() => dispatch({type: 'fast'})}>fast autoplay</button>
+                        <button 
+                        className="btn btn-primary me-2"
+                        onClick={(e) => dispatch({type: 'custom', payload: +e.target.textContent})}>1000</button>
                 </div>
             </div>
         </Container>
@@ -172,7 +201,7 @@ function App() {
   return (
     <>
         <button onClick={() => setSlider(false)}>Click</button>    
-        {slider ? <Slider/> : null}
+        {slider ? <Slider initial={false}/> : null}
     </>
   );
 }
